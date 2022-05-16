@@ -5,16 +5,17 @@
 function age_range 
 {
     awk -F "\t" '
-	BEGIN{a=0;b=0;c=0;sum=0}{
-		if($6>0&&$6<20)
+	BEGIN{a=0;b=0;c=0;}
+	$6!="Age"{
+		if($6>=0&&$6<20)
 		{a++}
 		else if($6>=20&&$6<=30)
 		{b++}
 		else
 		{c++}
-		sum++;
 	}
 	END{
+		sum=a+b+c;
 		printf("age under 20 player: number is %d\t percentage is %.3f%\n",a,a*100/sum);			
 		printf("age between 20 to 30 player: number is %d\t percentage is %.3f%\n",b,b*100/sum);
 		printf("age over 30 player: number is %d\t percentage is %.3f%\n",c,c*100/sum);
@@ -27,22 +28,16 @@ function age_range
 function position_range
 {
     awk -F "\t" '
-	BEGIN{a=0;b=0;c=0;d=0;sum=0}{
-		if($5=="Goalie")
-		{a++} 
-		else if($5=="Defender")
-		{b++} 
-		else if($5=="Midfielder")
-		{c++} 
-		else
-		{d++}
+	BEGIN{sum=0}
+	$5!="Position"{
+		pos[$5]++;
 		sum++;
 	}
 	END{
-		printf("number of Goalie is %d,percentage of Goalie is %.3f%\n",a,a*100/sum);
-		printf("number of Defenderb is %d,percentage of Defenderb is %.3f%\n",b,b*100/sum);
-		printf("number of Midfielden is %d,percentage of Midfielden is %.3f%\n",c,c*100/sum);
-		printf("number of Forward is %d,percentage of Forward is %.3f%\n",d,d*100/sum);
+		printf(" Position\tCount\tPercentage\n");
+		for(i in pos){
+			printf("%13s\t%d\t%f%%\n",i,pos[i],pos[i]*100.0/sum);
+		}
 	}' worldcupplayerinfo.tsv
 }
 
@@ -52,14 +47,22 @@ function position_range
 function max_min_name
 {
     awk -F "\t" '
-	BEGIN{max_len=0;max_name="";min_len=100;min_name=""}{
-		if(length($9)>max_len)
-		{max_len=length($9);max_name=$9} 
-		else if(length($9)<min_len)
-		{min_len=length($9);min_name=$9}
+	BEGIN{max_len=-1;min_len=1000;}
+	$9!="Player"{
+		len=length($9);
+            	names[$9]=len;
+            	max_len=len>max_len?len:max_len;
+           	min_len=len<min_len?len:min_len;
 	}
 	END{
-		printf("The longest name: %s\nThe shortest name: %s\n",max_name,min_name);
+		for(i in names){
+			if(names[i]==max_len){
+			printf("The longest name is %s\n",i);
+			}
+			else if(names[i]==min_len){
+			printf("The shortest name is %s\n",i);
+			}
+	}
 	}' worldcupplayerinfo.tsv
 }
 
@@ -69,14 +72,23 @@ function max_min_name
 function max_min_age
 {
     awk -F "\t" '
-	BEGIN{max_age=0;max_name="";min_age=100;min_name=""}{
-		if(NR>=2&&$6<=min_age)
-		{min_age=$6;min_name=$9} 
-		else if(NR>=2&&$6>max_age)
-		{max_age=$6;max_name=$9}
+	BEGIN{max_age=-1;min_age=1000;}
+	NR>1{
+		age=$6;
+		names[$9]=age;
+		max_age=age>max_age?age:max_age;
+		min_age=age<min_age?age:min_age;
 	}
 	END{
-		printf("The oldest player is %s age: %d\n,The youngest player is %s  age: %d\n",max_name,max_age,min_name,min_age)
+		printf("The oldest age is %d,his name is\n",max_age);
+		for(i in names){
+		if(names[i]==max_age){printf("%s\n",i);}
+		}	
+		printf("\n");
+		printf("The youngest age is %d,his name is\n",min_age);
+		for(i in names){
+		if(names[i]==min_age){printf("%s\n",i);}
+		}
 	}' worldcupplayerinfo.tsv
 }
 
